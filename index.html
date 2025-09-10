@@ -39,22 +39,49 @@
       max-width: 400px;
     }
     button {
+    /* Estilo geral dos botões */
+    button {
       background: transparent;
       border: 2px solid #0f0;
       color: #0f0;
-      font-size: clamp(18px, 4vw, 28px);
-      padding: clamp(10px, 3vw, 18px);
+      font-size: clamp(18px, 2vw, 22px);
+      padding: 10px 18px;
       border-radius: 8px;
       cursor: pointer;
       transition: 0.3s;
       text-shadow: 0 0 5px #0f0;
-      width: 100%;
-      max-width: 160px; /* 🔥 limita botões em telas grandes */
+      width: auto;          /* 👈 não ocupa 100% no PC */
+      min-width: 100px;     /* 👈 tamanho mínimo */
+      max-width: 200px;     /* 👈 tamanho máximo */
     }
-    button:hover {
-      background: #0f0;
-      color: #000;
-      box-shadow: 0 0 20px #0f0;
+
+    /* Teclado numérico: força ocupar célula inteira */
+    .keypad button {
+      width: 100%;
+      max-width: none;
+    }
+
+    /* Botões de controle centralizados */
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .controls button {
+      flex: unset;
+    }
+
+    /* Em celulares, ocupar largura cheia */
+    @media (max-width: 768px) {
+      .controls button,
+      #history button,
+      #moh-input + button {
+        width: 100%;
+        max-width: none;
+      }
     }
     .call-btn {
       border-color: lime;
