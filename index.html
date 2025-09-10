@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>FIRMA - Central SIP Hacker</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      text-align: center;
+      text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+    }
+    h1 { font-size: 40px; margin-top: 20px; }
+    #display {
+      width: 250px; height: 40px; margin: 20px auto;
+      border: 2px solid #0f0; background: #111;
+      font-size: 20px; text-align: right; padding: 5px;
+    }
+    .keypad {
+      display: grid; grid-template-columns: repeat(3, 80px);
+      gap: 10px; justify-content: center; margin: 20px;
+    }
+    button {
+      background: transparent; border: 2px solid #0f0; color: #0f0;
+      font-size: 20px; padding: 15px; border-radius: 8px;
+      cursor: pointer; transition: 0.3s; text-shadow: 0 0 5px #0f0;
+    }
+    button:hover { background: #0f0; color: #000; box-shadow: 0 0 20px #0f0; }
+    .call-btn { border-color: lime; color: lime; }
+    .call-btn:hover { background: lime; color: #000; }
+    .del-btn { border-color: red; color: red; }
+    .del-btn:hover { background: red; color: #000; }
+    .controls { margin-top: 20px; }
+    .controls button { margin: 5px; }
+    #timer { font-size: 18px; margin-top: 10px; }
+    #moh-input { margin: 15px; padding: 5px; width: 60%; }
+    #statusPanel, #micStatus { margin-top: 10px; font-size: 14px; }
+    #history { margin-top: 20px; border-top: 1px solid #0f0; padding-top: 10px; }
+    #visualizer { width: 200px; height: 50px; margin: 20px auto; background: #111; display: flex; align-items: flex-end; justify-content: center; }
+    .bar { width: 5px; margin: 0 1px; background: #0f0; }
+    footer { margin-top: 40px; font-size: 14px; color: #0f0; }
+  </style>
+</head>
+<body>
+  <h1>📞 FIRMA</h1>
+
+  <div id="display">_</div>
+
+  <div class="keypad">
+    <button onclick="digit('1')">1</button>
+    <button onclick="digit('2')">2</button>
+    <button onclick="digit('3')">3</button>
+    <button onclick="digit('4')">4</button>
+    <button onclick="digit('5')">5</button>
+    <button onclick="digit('6')">6</button>
+    <button onclick="digit('7')">7</button>
+    <button onclick="digit('8')">8</button>
+    <button onclick="digit('9')">9</button>
+    <button onclick="digit('*')">*</button>
+    <button onclick="digit('0')">0</button>
+    <button onclick="digit('#')">#</button>
+  </div>
+
+  <div>
+    <button class="call-btn" onclick="makeCall()">📞 Ligar</button>
+    <button class="del-btn" onclick="deleteDigit()">⌫ Deletar</button>
+  </div>
+
+  <div class="controls">
+    <button onclick="atender()">Atender</button>
+    <button onclick="desligar()">Desligar</button>
+    <button onclick="espera()">🎵 Espera</button>
+    <button id="muteBtn" onclick="mute()">🤫 Silenciar</button>
+  </div>
+
+  <div>
+    <input id="moh-input" type="text" placeholder="Cole aqui a URL da música (mp3)">
+    <button onclick="trocarMusica()">Trocar Música</button>
+  </div>
+
+  <div id="timer">Duração: 00:00:00</div>
+
+  <div id="statusPanel">Status: Desconectado</div>
+  <div id="micStatus">Microfone: ATIVO</div>
+
+  <!-- Visualizador de áudio -->
+  <div id="visualizer"></div>
+
+  <!-- Histórico configurável -->
+  <div id="history">
+    <strong>Histórico de Chamadas:</strong><br>
+    <button onclick="toggleHistory()">📋 Ativar/Desativar Histórico</button>
+    <button onclick="clearHistory()">🗑 Limpar Histórico</button>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- Áudios -->
+  <audio id="remoteAudio" autoplay></audio>
+  <audio id="musicOnHold" loop></audio>
+  <audio id="ringtone" src="https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg"></audio>
+
+  <footer>
+    Dev: <strong>Abravanel PDA ; KR3 ORIGINAL</strong>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sip.js/0.20.0/sip.min.js"></script>
+  <script>
+    let display = document.getElementById("display");
+    let number = "";
+    let sessao;
+    let startTime, timerInterval;
+    let muted = false;
+    let saveHistory = true;
+    let musicOnHold = document.getElementById("musicOnHold");
+    let historyList = document.getElementById("historyList");
+
+    /* === Teclado === */
+    function digit(d) { number += d; display.textContent = number; }
+    function deleteDigit() { number = number.slice(0, -1); display.textContent = number || "_"; }
+
+    /* === Cronômetro === */
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        let diff = Date.now() - startTime;
+        let h = String(Math.floor(diff / 3600000)).padStart(2, "0");
+        let m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0");
+        let s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
+        document.getElementById("timer").textContent = `Duração: ${h}:${m}:${s}`;
+      }, 1000);
+    }
+    function stopTimer() {
+      clearInterval(timerInterval);
+      document.getElementById("timer").textContent = "Duração: 00:00:00";
+    }
+
+    /* === SIP Config (trocar pelos dados reais) === */
+    const userAgent = new SIP.UA({
+      uri: "1001@seudominio.com",
+      transportOptions: { wsServers: ["wss://seudominio.com:8089/ws"] },
+      authorizationUser: "1001",
+      password: "senha123"
+    });
+
+    userAgent.on('registered', () => { document.getElementById("statusPanel").textContent = "Status: ✅ Conectado"; });
+    userAgent.on('unregistered', () => { document.getElementById("statusPanel").textContent = "Status: ❌ Desconectado"; });
+
+    userAgent.on('invite', (session) => {
+      sessao = session;
+      document.getElementById("statusPanel").textContent = "Status: 📞 Chamada recebida";
+      document.getElementById("ringtone").play(); // toca som de chamada
+      sessao.on('trackAdded', () => {
+        const stream = new MediaStream();
+        sessao.sessionDescriptionHandler.peerConnection.getReceivers().forEach(r => {
+          if (r.track) stream.addTrack(r.track);
+        });
+        document.getElementById("remoteAudio").srcObject = stream;
+      });
+    });
+
+    /* === Chamadas === */
+    function makeCall() {
+      if (!number) return alert("Digite um número!");
+      sessao = userAgent.invite(`sip:${number}@seudominio.com`);
+      document.getElementById("statusPanel").textContent = "Status: 📤 Ligando...";
+      startTimer();
+      if (saveHistory) addHistory(number, "Discada");
+    }
+    function atender() { if (sessao) { sessao.accept(); startTimer(); document.getElementById("statusPanel").textContent = "Status: 📞 Em chamada"; } }
+    function desligar() { if (sessao) { sessao.bye(); stopTimer(); musicOnHold.pause(); document.getElementById("statusPanel").textContent = "Status: 🔚 Finalizada"; } }
+    function espera() { if (sessao) { musicOnHold.play(); sessao.hold(); document.getElementById("statusPanel").textContent = "Status: 🎵 Em espera"; } }
+
+    /* === Mute com status visual === */
+    function mute() {
+      if (sessao) {
+        let pc = sessao.sessionDescriptionHandler.peerConnection;
+        pc.getSenders().forEach(s => { if (s.track) s.track.enabled = !s.track.enabled; });
+        muted = !muted;
+        let btn = document.getElementById("muteBtn");
+        let status = document.getElementById("micStatus");
+        if (muted) { btn.style.borderColor = "red"; btn.style.color = "red"; btn.textContent = "🔇 Microfone OFF"; status.textContent = "Microfone: DESATIVADO"; }
+        else { btn.style.borderColor = "#0f0"; btn.style.color = "#0f0"; btn.textContent = "🤫 Silenciar"; status.textContent = "Microfone: ATIVO"; }
+      }
+    }
+
+    /* === Música de espera === */
+    function trocarMusica() {
+      let url = document.getElementById("moh-input").value;
+      if (url) { musicOnHold.src = url; alert("🎵 Música de espera atualizada!"); }
+    }
+
+    /* === Histórico === */
+    function addHistory(num, tipo) {
+      let time = new Date().toLocaleTimeString();
+      let item = document.createElement("div");
+      item.textContent = `${tipo}: ${num} (${time})`;
+      historyList.prepend(item);
+    }
+    function toggleHistory() { saveHistory = !saveHistory; alert(saveHistory ? "Histórico ATIVADO" : "Histórico DESATIVADO"); }
+    function clearHistory() { historyList.innerHTML = ""; }
+
+    /* === Visualizador de áudio === */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+    const remoteAudio = document.getElementById("remoteAudio");
+    const source = audioCtx.createMediaElementSource(remoteAudio);
+    source.connect(analyser); analyser.connect(audioCtx.destination);
+    analyser.fftSize = 64;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const visualizer = document.getElementById("visualizer");
+    for (let i = 0; i < bufferLength; i++) {
+      let bar = document.createElement("div");
+      bar.className = "bar"; bar.style.height = "5px"; visualizer.appendChild(bar);
+    }
+    const bars = document.getElementsByClassName("bar");
+    function draw() {
+      requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(dataArray);
+      for (let i = 0; i < bars.length; i++) {
+        bars[i].style.height = (dataArray[i] / 4) + "px";
+      }
+    }
+    draw();
+  </script>
+</body>
+</html>
