@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsivo -->
   <title>FIRMA - Central SIP Hacker</title>
   <style>
     body {
@@ -10,36 +11,128 @@
       font-family: "Courier New", monospace;
       text-align: center;
       text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+      margin: 0;
+      padding: 0;
     }
-    h1 { font-size: 40px; margin-top: 20px; }
+    h1 {
+      font-size: 7vw; /* Escala com tela */
+      margin: 20px 0;
+    }
     #display {
-      width: 250px; height: 40px; margin: 20px auto;
-      border: 2px solid #0f0; background: #111;
-      font-size: 20px; text-align: right; padding: 5px;
+      width: 90%;
+      max-width: 400px;
+      height: 50px;
+      margin: 20px auto;
+      border: 2px solid #0f0;
+      background: #111;
+      font-size: 5vw;
+      max-font-size: 26px;
+      text-align: right;
+      padding: 5px;
     }
     .keypad {
-      display: grid; grid-template-columns: repeat(3, 80px);
-      gap: 10px; justify-content: center; margin: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 400px;
     }
     button {
-      background: transparent; border: 2px solid #0f0; color: #0f0;
-      font-size: 20px; padding: 15px; border-radius: 8px;
-      cursor: pointer; transition: 0.3s; text-shadow: 0 0 5px #0f0;
+      background: transparent;
+      border: 2px solid #0f0;
+      color: #0f0;
+      font-size: 6vw;
+      max-font-size: 22px;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-shadow: 0 0 5px #0f0;
+      width: 100%;
     }
-    button:hover { background: #0f0; color: #000; box-shadow: 0 0 20px #0f0; }
-    .call-btn { border-color: lime; color: lime; }
-    .call-btn:hover { background: lime; color: #000; }
-    .del-btn { border-color: red; color: red; }
-    .del-btn:hover { background: red; color: #000; }
-    .controls { margin-top: 20px; }
-    .controls button { margin: 5px; }
-    #timer { font-size: 18px; margin-top: 10px; }
-    #moh-input { margin: 15px; padding: 5px; width: 60%; }
-    #statusPanel, #micStatus { margin-top: 10px; font-size: 14px; }
-    #history { margin-top: 20px; border-top: 1px solid #0f0; padding-top: 10px; }
-    #visualizer { width: 200px; height: 50px; margin: 20px auto; background: #111; display: flex; align-items: flex-end; justify-content: center; }
-    .bar { width: 5px; margin: 0 1px; background: #0f0; }
-    footer { margin-top: 40px; font-size: 14px; color: #0f0; }
+    button:hover {
+      background: #0f0;
+      color: #000;
+      box-shadow: 0 0 20px #0f0;
+    }
+    .call-btn {
+      border-color: lime;
+      color: lime;
+    }
+    .call-btn:hover {
+      background: lime;
+      color: #000;
+    }
+    .del-btn {
+      border-color: red;
+      color: red;
+    }
+    .del-btn:hover {
+      background: red;
+      color: #000;
+    }
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 90%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .controls button {
+      flex: 1 1 45%;
+    }
+    #timer {
+      font-size: 4vw;
+      margin-top: 10px;
+    }
+    #moh-input {
+      margin: 15px;
+      padding: 8px;
+      width: 80%;
+      max-width: 400px;
+      font-size: 4vw;
+    }
+    #statusPanel,
+    #micStatus {
+      margin-top: 10px;
+      font-size: 4vw;
+    }
+    #history {
+      margin-top: 20px;
+      border-top: 1px solid #0f0;
+      padding-top: 10px;
+      font-size: 4vw;
+      width: 90%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #visualizer {
+      width: 90%;
+      max-width: 400px;
+      height: 60px;
+      margin: 20px auto;
+      background: #111;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .bar {
+      flex: 1;
+      margin: 0 1px;
+      background: #0f0;
+    }
+    footer {
+      margin: 30px 0;
+      font-size: 3.5vw;
+      color: #0f0;
+    }
   </style>
 </head>
 <body>
@@ -47,6 +140,7 @@
 
   <div id="display">_</div>
 
+  <!-- Teclado numérico -->
   <div class="keypad">
     <button onclick="digit('1')">1</button>
     <button onclick="digit('2')">2</button>
@@ -62,11 +156,13 @@
     <button onclick="digit('#')">#</button>
   </div>
 
+  <!-- Ligar e deletar -->
   <div>
     <button class="call-btn" onclick="makeCall()">📞 Ligar</button>
     <button class="del-btn" onclick="deleteDigit()">⌫ Deletar</button>
   </div>
 
+  <!-- Controles -->
   <div class="controls">
     <button onclick="atender()">Atender</button>
     <button onclick="desligar()">Desligar</button>
@@ -74,20 +170,23 @@
     <button id="muteBtn" onclick="mute()">🤫 Silenciar</button>
   </div>
 
+  <!-- Música de espera -->
   <div>
     <input id="moh-input" type="text" placeholder="Cole aqui a URL da música (mp3)">
     <button onclick="trocarMusica()">Trocar Música</button>
   </div>
 
+  <!-- Timer -->
   <div id="timer">Duração: 00:00:00</div>
 
+  <!-- Status -->
   <div id="statusPanel">Status: Desconectado</div>
   <div id="micStatus">Microfone: ATIVO</div>
 
-  <!-- Visualizador de áudio -->
+  <!-- Visualizador -->
   <div id="visualizer"></div>
 
-  <!-- Histórico configurável -->
+  <!-- Histórico -->
   <div id="history">
     <strong>Histórico de Chamadas:</strong><br>
     <button onclick="toggleHistory()">📋 Ativar/Desativar Histórico</button>
@@ -149,7 +248,7 @@
     userAgent.on('invite', (session) => {
       sessao = session;
       document.getElementById("statusPanel").textContent = "Status: 📞 Chamada recebida";
-      document.getElementById("ringtone").play(); // toca som de chamada
+      document.getElementById("ringtone").play();
       sessao.on('trackAdded', () => {
         const stream = new MediaStream();
         sessao.sessionDescriptionHandler.peerConnection.getReceivers().forEach(r => {
@@ -167,9 +266,28 @@
       startTimer();
       if (saveHistory) addHistory(number, "Discada");
     }
-    function atender() { if (sessao) { sessao.accept(); startTimer(); document.getElementById("statusPanel").textContent = "Status: 📞 Em chamada"; } }
-    function desligar() { if (sessao) { sessao.bye(); stopTimer(); musicOnHold.pause(); document.getElementById("statusPanel").textContent = "Status: 🔚 Finalizada"; } }
-    function espera() { if (sessao) { musicOnHold.play(); sessao.hold(); document.getElementById("statusPanel").textContent = "Status: 🎵 Em espera"; } }
+    function atender() {
+      if (sessao) {
+        sessao.accept();
+        startTimer();
+        document.getElementById("statusPanel").textContent = "Status: 📞 Em chamada";
+      }
+    }
+    function desligar() {
+      if (sessao) {
+        sessao.bye();
+        stopTimer();
+        musicOnHold.pause();
+        document.getElementById("statusPanel").textContent = "Status: 🔚 Finalizada";
+      }
+    }
+    function espera() {
+      if (sessao) {
+        musicOnHold.play();
+        sessao.hold();
+        document.getElementById("statusPanel").textContent = "Status: 🎵 Em espera";
+      }
+    }
 
     /* === Mute com status visual === */
     function mute() {
@@ -179,15 +297,27 @@
         muted = !muted;
         let btn = document.getElementById("muteBtn");
         let status = document.getElementById("micStatus");
-        if (muted) { btn.style.borderColor = "red"; btn.style.color = "red"; btn.textContent = "🔇 Microfone OFF"; status.textContent = "Microfone: DESATIVADO"; }
-        else { btn.style.borderColor = "#0f0"; btn.style.color = "#0f0"; btn.textContent = "🤫 Silenciar"; status.textContent = "Microfone: ATIVO"; }
+        if (muted) {
+          btn.style.borderColor = "red";
+          btn.style.color = "red";
+          btn.textContent = "🔇 Microfone OFF";
+          status.textContent = "Microfone: DESATIVADO";
+        } else {
+          btn.style.borderColor = "#0f0";
+          btn.style.color = "#0f0";
+          btn.textContent = "🤫 Silenciar";
+          status.textContent = "Microfone: ATIVO";
+        }
       }
     }
 
     /* === Música de espera === */
     function trocarMusica() {
       let url = document.getElementById("moh-input").value;
-      if (url) { musicOnHold.src = url; alert("🎵 Música de espera atualizada!"); }
+      if (url) {
+        musicOnHold.src = url;
+        alert("🎵 Música de espera atualizada!");
+      }
     }
 
     /* === Histórico === */
@@ -197,7 +327,10 @@
       item.textContent = `${tipo}: ${num} (${time})`;
       historyList.prepend(item);
     }
-    function toggleHistory() { saveHistory = !saveHistory; alert(saveHistory ? "Histórico ATIVADO" : "Histórico DESATIVADO"); }
+    function toggleHistory() {
+      saveHistory = !saveHistory;
+      alert(saveHistory ? "Histórico ATIVADO" : "Histórico DESATIVADO");
+    }
     function clearHistory() { historyList.innerHTML = ""; }
 
     /* === Visualizador de áudio === */
@@ -205,14 +338,17 @@
     const analyser = audioCtx.createAnalyser();
     const remoteAudio = document.getElementById("remoteAudio");
     const source = audioCtx.createMediaElementSource(remoteAudio);
-    source.connect(analyser); analyser.connect(audioCtx.destination);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
     analyser.fftSize = 64;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     const visualizer = document.getElementById("visualizer");
     for (let i = 0; i < bufferLength; i++) {
       let bar = document.createElement("div");
-      bar.className = "bar"; bar.style.height = "5px"; visualizer.appendChild(bar);
+      bar.className = "bar";
+      bar.style.height = "5px";
+      visualizer.appendChild(bar);
     }
     const bars = document.getElementsByClassName("bar");
     function draw() {
@@ -225,4 +361,4 @@
     draw();
   </script>
 </body>
-</html>
+  </html>
